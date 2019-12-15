@@ -1,0 +1,23 @@
+opam-version: "2.0"
+maintainer: "dev@clarus.me"
+homepage: "https://github.com/clarus/coq-bonsai"
+dev-repo: "git+https://github.com/clarus/coq-bonsai.git"
+bug-reports: "https://github.com/clarus/coq-bonsai/issues"
+authors: ["Guillaume Claret"]
+license: "MIT"
+build: [
+  ["./configure.sh"]
+  [make "-j%{jobs}%"]
+  [make "-C" "extraction"]
+]
+depends: [
+  "coq-io" {>= "4.0.0" build}
+  "coq-io-system" {build}
+  "coq-io-system-ocaml" {>= "2.3.0"}
+]
+tags: [
+  "keyword:bonsai"
+  "keyword:effects"
+  "keyword:extraction"
+]
+synopsis: "Generate fresh Bonsai on your terminal"
