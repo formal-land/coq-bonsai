@@ -1,3 +1,23 @@
+(*
+  Bonsai generator for the terminal
+
+  Copyright (C) 2019 Guillaume Claret
+  Copyright (C) 2019 John Allbritten
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*)
+
 Require Import Coq.Lists.List.
 Require Import Coq.Strings.Ascii.
 Require Import Coq.Strings.String.
@@ -124,26 +144,21 @@ Module Grid.
     end.
 
   Record t : Set := {
-    pixels : list (list (string * string));
-    trace : list (nat * nat * Typ * string)
+    pixels : list (list (string * option string));
+    trace : list (nat * nat * Typ * option string)
   }.
 
   Definition init : t := {|
-    pixels := List.repeat (List.repeat (Colors.R, " ") (columns + 1)) (rows + 1);
+    pixels := List.repeat (List.repeat (Colors.R, None) columns) rows;
     trace := []
   |}.
 
   Definition set (grid : t) (x y : nat) (typ : Typ) (color : string)
-    (chars : string) : t :=
+    (chars : option string) : t :=
     {|
       pixels :=
         List.apply_ith grid.(pixels) y (fun line =>
-          List.apply_ith line x (fun _ =>
-            match chars with
-            | EmptyString => (Colors.R, " ")
-            | String c _ => (color, String c EmptyString)
-            end
-          )
+          List.apply_ith line x (fun _ => (color, chars))
         );
       trace := cons (x, y, typ, chars) grid.(trace)
     |}.
@@ -228,7 +243,8 @@ Module Grid.
           else if (isShoot typ || isTrunk typ) && Nat.ltb life (multiplier + 2) then
             let? grid := branch grid branches shoots isShootRight x y Dying life fuel in
             M.ret (grid, shoots, isShootRight)
-          (* Re-branch if: not close to the base AND (pass a chance test OR be a trunk, not have too many shoots already, and not be about to die) *)
+          (* Re-branch if: not close to the base AND (pass a chance test OR be a trunk,
+             not have too many shoots already, and not be about to die) *)
           else if
             isTrunk typ && Nat.ltb life (lifeStart - 8) &&
             (
@@ -272,20 +288,20 @@ Module Grid.
         | Dead => Colors.Green
         end in
       (* Choose branch character. *)
-      let chars : string :=
+      let chars : option string :=
         match typ with
         | Trunk =>
           let chars :=
             if Z.ltb dx 0 then
-              "\"
+              "λ"
             else if Z.eqb dx 0 then
               "/|"
             else
               "/" in
           if Z.eqb dy 0 then
-            "/~"
+            Some "/~"
           else
-            chars
+            Some chars
         (* Shoots tend to look horizontal. *)
         | ShootLeft =>
           let chars :=
@@ -297,12 +313,12 @@ Module Grid.
               "/" in
           (* growing down *)
           if Z.gtb dy 0 then
-            "/"
+            Some "/"
           (* not growing *)
           else if Z.eqb dy 0 then
-            "\_"
+            Some "\_"
           else
-            chars
+            Some chars
         | ShootRight =>
           let chars :=
             if Z.ltb dx 0 then
@@ -313,18 +329,18 @@ Module Grid.
               "/" in
           (* growing down *)
           if Z.gtb dy 0 then
-            "\"
+            Some "\"
           (* not growing *)
           else if Z.eqb dy 0 then
-            "_/"
+            Some "_/"
           else
-            chars
-        | _ => ""
+            Some chars
+        | _ => None
         end in
       (* Choose leaf character. *)
       let chars :=
         if Nat.ltb life 4 then
-          "&"
+          Some "&"
         else
           chars in
       (* Add character(s) to our grid. *)
@@ -342,10 +358,22 @@ Module Grid.
     List.concat
       (List.map (fun line =>
           List.concat (List.map (fun '(color, chars) =>
+            let chars :=
+              match chars with
+              | None => " "
+              | Some chars => chars
+              end in
             LString.s (color ^^ chars)) line
           ) ++ LString.s new_line
         )
-        grid.(pixels)
+        (List.filter (fun line =>
+          List.existsb (fun '(_, chars) =>
+            match chars with
+            | Some _ => true
+            | None => false
+            end
+          ) line
+        ) grid.(pixels))
       ).
 End Grid.
 

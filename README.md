@@ -1,6 +1,8 @@
 # coq-bonsai
 > 🌳 Generate a fresh bonsai in your terminal
 
+Inspired by [bonsai.sh](https://gitlab.com/jallbrit/bonsai.sh).
+
 Add the Coq's [opam repository](https://github.com/coq/opam-coq-archive):
 ```sh
 opam repo add coq-released https://coq.inria.fr/opam/released

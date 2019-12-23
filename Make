@@ -1,3 +1,3 @@
--R src HelloWorld
+-R src Bonsai
 
 src/Main.v
