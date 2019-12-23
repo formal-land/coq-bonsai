@@ -273,7 +273,7 @@ Module Grid.
         | Trunk =>
           let chars :=
             if Z.ltb dx 0 then
-              "\"
+              "λ"
             else if Z.eqb dx 0 then
               "/|"
             else
