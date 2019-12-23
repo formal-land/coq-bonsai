@@ -36,7 +36,7 @@ Local Open Scope list.
 Notation "x ^^ y" := (String.append x y) (right associativity, at level 60).
 
 Definition columns := 50.
-Definition rows := 30.
+Definition rows := 28.
 Definition lifeStart := 28.
 Definition multiplier := 5.
 Definition branchesMax := multiplier * 110.
@@ -366,14 +366,7 @@ Module Grid.
             LString.s (color ^^ chars)) line
           ) ++ LString.s new_line
         )
-        (List.filter (fun line =>
-          List.existsb (fun '(_, chars) =>
-            match chars with
-            | Some _ => true
-            | None => false
-            end
-          ) line
-        ) grid.(pixels))
+        grid.(pixels)
       ).
 End Grid.
 
