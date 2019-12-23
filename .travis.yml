@@ -10,9 +10,9 @@ env:
   - PACKAGE_NAME="coq-bonsai"
   matrix:
   - COQ_IMAGE="coqorg/coq:8.4" SHOULD_SUPPORT="false"
-  - COQ_IMAGE="coqorg/coq:8.5" SHOULD_SUPPORT="true"
-  - COQ_IMAGE="coqorg/coq:8.6" SHOULD_SUPPORT="true"
-  - COQ_IMAGE="coqorg/coq:8.7" SHOULD_SUPPORT="true"
+  - COQ_IMAGE="coqorg/coq:8.5" SHOULD_SUPPORT="false"
+  - COQ_IMAGE="coqorg/coq:8.6" SHOULD_SUPPORT="false"
+  - COQ_IMAGE="coqorg/coq:8.7" SHOULD_SUPPORT="false"
   - COQ_IMAGE="coqorg/coq:8.8" SHOULD_SUPPORT="true"
   - COQ_IMAGE="coqorg/coq:8.9" SHOULD_SUPPORT="true"
   - COQ_IMAGE="coqorg/coq:8.10" SHOULD_SUPPORT="true"
@@ -47,6 +47,8 @@ script:
       opam list
       # Then install the package itself in verbose mode
       opam install ${PACKAGE_NAME} -v
+      # Check that the binary is installed
+      which coq-bonsai
     fi;
     " script
 - docker stop COQ  # optional
