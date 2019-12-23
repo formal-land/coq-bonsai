@@ -20,6 +20,7 @@ Definition rows := 50.
 Definition lifeStart := 28.
 Definition multiplier := 5.
 Definition branchesMax := multiplier * 110.
+Definition shootsMax := multiplier.
 
 Definition random max := Nat.modulo 12 max.
 
@@ -125,7 +126,7 @@ Module Grid.
         | _ => 0 % Z
         end
       | _ =>
-        if Nat.eqb life lifeStart && (2 <? random 10) then
+        if Nat.eqb life lifeStart && Nat.ltb 2 (random 10) then
           (-1) % Z
         else
           0 % Z
@@ -161,23 +162,33 @@ Module Grid.
       (Z.of_nat (random 3) - 1) % Z
     end.
 
-  Fixpoint branch (grid : t) (branches : nat) (x y : nat) (typ : Typ)
-    (life : nat) : t :=
-    match life with
-    | O => grid
-    | S life =>
+  Fixpoint branch (grid : t) (branches : nat) (shoots : nat)
+    (isShootRight : bool) (x y : nat) (typ : Typ) (life : nat) (fuel : nat)
+    {struct fuel} : t :=
+    match life, fuel with
+    | O, _ | _, O => grid
+    | S life, S fuel =>
       let dy := get_dy y typ life in
       let dx := get_dx typ in
       let branches := S branches in
       (* Re-branch upon conditions. *)
-      let grid :=
+      let '(grid, shoots, isShootRight) :=
+        let current := (grid, shoots, isShootRight) in
         if Nat.ltb branches branchesMax then
           (* Branch is dead. *)
           if Nat.ltb life 3 then
-            branch grid branches x y Dead life
+            (
+              branch grid branches shoots isShootRight x y Dead life fuel,
+              shoots,
+              isShootRight
+            )
           (* Branch is dying and needs to branch into leaves. *)
           else if (isShoot typ || isTrunk typ) && Nat.ltb life (multiplier + 2) then
-            branch grid branches x y Dying life
+            (
+              branch grid branches shoots isShootRight x y Dying life fuel,
+              shoots,
+              isShootRight
+            )
           (* Re-branch if: not close to the base AND (pass a chance test OR be a trunk, not have too many shoots already, and not be about to die) *)
           else if
             isTrunk typ && Nat.ltb life (lifeStart - 8) &&
@@ -188,13 +199,29 @@ Module Grid.
           then
             (* If a trunk is splitting and not about to die, chance to create another trunk *)
             if Nat.eqb (random 3) 0 && Nat.ltb 7 life then
-              branch grid branches x y Trunk life
+              (
+                branch grid branches shoots isShootRight x y Trunk life fuel,
+                shoots,
+                isShootRight
+              )
+            else if Nat.ltb shoots shootsMax then
+              (* Give the shoot some life. *)
+              let life := life + multiplier - 2 in
+
+              (* Shoots alternate from the first. *)
+              let isShootRight := negb isShootRight in
+              let typ := if isShootRight then ShootRight else ShootLeft in
+              (
+                branch grid branches shoots isShootRight x y typ life fuel,
+                shoots + 1,
+                isShootRight
+              )
             else
-              grid (*TODO*)
+              current
           else
-            grid
+            current
         else
-          grid in
+          current in
       (* Implement dx, dy. *)
       let x := Z.to_nat (Z.of_nat x + dx) in
       let y := Z.to_nat (Z.of_nat y + dy) in
@@ -267,17 +294,20 @@ Module Grid.
           chars in
       (* Add character(s) to our grid. *)
       let grid := set grid x y color chars in
-      branch grid branches x y typ life
+      branch grid branches shoots isShootRight x y typ life fuel
     end.
 
   Definition grow : t :=
-    branch init 0 (Nat.div2 columns) rows Trunk lifeStart.
-(* Compute grow. *)
+    let isShootRight := Nat.eqb (random 2) 0 in
+    let fuel := columns * rows in
+    branch init 0 0 isShootRight (Nat.div2 columns) rows Trunk lifeStart fuel.
 
   Definition to_string (grid : t) : LString.t :=
     List.concat
       (List.map (fun line =>
-          List.concat (List.map (fun '(color, chars) => LString.s (color ^^ chars)) line) ++ LString.s new_line
+          List.concat (List.map (fun '(color, chars) =>
+            LString.s (color ^^ chars)) line
+          ) ++ LString.s new_line
         )
         grid.(pixels)
       ).
