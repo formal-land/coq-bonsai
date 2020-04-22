@@ -12,7 +12,7 @@ opam repo add coq-released https://coq.inria.fr/opam/released
 
 Install:
 ```sh
-opam install .
+opam pin add git@github.com:clarus/coq-bonsai.git
 ```
 
 Run:
