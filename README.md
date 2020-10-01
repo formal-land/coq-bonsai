@@ -1,9 +1,9 @@
 # coq-bonsai
-> 🌳 Generate a fresh bonsai in your terminal
+> 🌳 Generate a random bonsai in your terminal
 
 ![screenshot](https://raw.githubusercontent.com/clarus/coq-bonsai/master/screenshot.png)
 
-Inspired by [bonsai.sh](https://gitlab.com/jallbrit/bonsai.sh).
+Inspired by [bonsai.sh](https://gitlab.com/jallbrit/bonsai.sh). Written in [Coq](https://coq.inria.fr/).
 
 Add the Coq's [opam repository](https://github.com/coq/opam-coq-archive):
 ```sh
