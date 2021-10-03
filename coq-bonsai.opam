@@ -11,13 +11,15 @@ build: [
   [make "-C" "extraction"]
 ]
 depends: [
-  "coq" {>= "8.8"}
+  "coq" {>= "8.13.0"}
   "coq-list-string"
   "coq-simple-io"
+  "ocaml"
+  "ocamlbuild" {build}
 ]
 tags: [
   "keyword:bonsai"
   "keyword:effects"
   "keyword:extraction"
 ]
-synopsis: "Generate fresh Bonsai on your terminal"
+synopsis: "Generate a fresh Bonsai on your terminal"
