@@ -77,7 +77,7 @@ Module M.
     fst (x seed).
 End M.
 
-Notation "'let?' x ':=' X 'in' Y" :=
+Notation "'let*' x ':=' X 'in' Y" :=
   (M.bind X (fun x => Y))
   (at level 200, x pattern, X at level 100, Y at level 200).
 
@@ -165,7 +165,7 @@ Module Grid.
 
   (* Get dy based on type. *)
   Definition get_dy (y : nat) (typ : Typ) (life : nat) : M.t Z :=
-    let? rand10 := M.random 10 in
+    let* rand10 := M.random 10 in
     let dy :=
       match typ with
       | Dying =>
@@ -198,7 +198,7 @@ Module Grid.
   Definition get_dx (typ : Typ) : M.t Z :=
     match typ with
     | ShootLeft => (* tend left: dx=[-2,1] *)
-      let? rand10 := M.random 10 in
+      let* rand10 := M.random 10 in
       M.ret match rand10 with
       | 0 | 1 => (-2) % Z
       | 2 | 3 | 4 | 5 => (-1) % Z
@@ -206,7 +206,7 @@ Module Grid.
       | _ => 1 % Z
       end
     | ShootRight => (* tend right: dx=[-1,2] *)
-      let? rand10 := M.random 10 in
+      let* rand10 := M.random 10 in
       M.ret match rand10 with
       | 0 | 1 => 2 % Z
       | 2 | 3 | 4 | 5 => 1 % Z
@@ -214,10 +214,10 @@ Module Grid.
       | _ => (-1) % Z
       end
     | Dying => (* tend left/right: dx=[-3,3] *)
-      let? rand7 := M.random 7 in
+      let* rand7 := M.random 7 in
       M.ret (Z.of_nat rand7 - 2) % Z
     | _ => (* tend equal: dx=[-1,1] *)
-      let? rand3 := M.random 3 in
+      let* rand3 := M.random 3 in
       M.ret (Z.of_nat rand3 - 1) % Z
     end.
 
@@ -227,21 +227,21 @@ Module Grid.
     match life, fuel with
     | O, _ | _, O => M.ret grid
     | S life, S fuel =>
-      let? dy := get_dy y typ life in
-      let? dx := get_dx typ in
+      let* dy := get_dy y typ life in
+      let* dx := get_dx typ in
       let branches := branches + 1 in
       (* Re-branch upon conditions. *)
-      let? (grid, shoots, isShootRight) :=
+      let* (grid, shoots, isShootRight) :=
         let current := (grid, shoots, isShootRight) in
         if Nat.ltb branches branchesMax then
-          let? rand16_multiplier := M.random (16 - multiplier) in
+          let* rand16_multiplier := M.random (16 - multiplier) in
           (* Branch is dead. *)
           if Nat.ltb life 3 then
-            let? grid := branch grid branches shoots isShootRight x y Dead life fuel in
+            let* grid := branch grid branches shoots isShootRight x y Dead life fuel in
             M.ret (grid, shoots, isShootRight)
           (* Branch is dying and needs to branch into leaves. *)
           else if (isShoot typ || isTrunk typ) && Nat.ltb life (multiplier + 2) then
-            let? grid := branch grid branches shoots isShootRight x y Dying life fuel in
+            let* grid := branch grid branches shoots isShootRight x y Dying life fuel in
             M.ret (grid, shoots, isShootRight)
           (* Re-branch if: not close to the base AND (pass a chance test OR be a trunk,
              not have too many shoots already, and not be about to die) *)
@@ -253,9 +253,9 @@ Module Grid.
             )
           then
             (* If a trunk is splitting and not about to die, chance to create another trunk *)
-            let? rand3 := M.random 3 in
+            let* rand3 := M.random 3 in
             if Nat.eqb rand3 0 && Nat.ltb 7 life then
-              let? grid := branch grid branches shoots isShootRight x y Trunk life fuel in
+              let* grid := branch grid branches shoots isShootRight x y Trunk life fuel in
               M.ret (grid, shoots, isShootRight)
             else if Nat.ltb shoots shootsMax then
               (* Give the shoot some life. *)
@@ -264,7 +264,7 @@ Module Grid.
               (* Shoots alternate from the first. *)
               let isShootRight := negb isShootRight in
               let typ := if isShootRight then ShootRight else ShootLeft in
-              let? grid := branch grid branches shoots isShootRight x y typ life fuel in
+              let* grid := branch grid branches shoots isShootRight x y typ life fuel in
               M.ret (grid, shoots + 1, isShootRight)
             else
               M.ret current
@@ -276,7 +276,7 @@ Module Grid.
       let x := Z.to_nat (Z.of_nat x + dx) in
       let y := Z.to_nat (Z.of_nat y + dy) in
       (* Choose color. *)
-      let? rand4 := M.random 4 in
+      let* rand4 := M.random 4 in
       let color :=
         match typ with
         | ShootLeft | ShootRight | Trunk =>
@@ -349,7 +349,7 @@ Module Grid.
     end.
 
   Definition grow : M.t t :=
-    let? rand2 := M.random 2 in
+    let* rand2 := M.random 2 in
     let isShootRight := Nat.eqb rand2 0 in
     let fuel := columns * rows in
     branch init 0 0 isShootRight (Nat.div2 columns) rows Trunk lifeStart fuel.
