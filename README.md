@@ -19,3 +19,5 @@ Run:
 ```sh
 coq-bonsai
 ```
+
+You can add it to your terminal's startup file (like `~/.bashrc`) so that you always start your terminal sessions with a fresh bonsai.
