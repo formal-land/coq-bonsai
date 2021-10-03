@@ -17,5 +17,5 @@ opam pin add git@github.com:clarus/coq-bonsai.git
 
 Run:
 ```sh
-coq-bonsai $RANDOM $RANDOM
+coq-bonsai
 ```

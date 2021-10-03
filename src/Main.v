@@ -22,12 +22,12 @@ Require Import Coq.Lists.List.
 Require Import Coq.Strings.Ascii.
 Require Import Coq.Strings.String.
 Require Import Coq.ZArith.ZArith.
-Require Import Io.All.
-Require Import Io.System.All.
 Require Import ListString.All.
+Require Import SimpleIO.SimpleIO.
+Require SimpleIO.IO_Random.
+Require Coq.extraction.ExtrOcamlIntConv.
 
 Import ListNotations.
-Import C.Notations.
 
 Local Open Scope bool.
 Local Open Scope string.
@@ -370,24 +370,23 @@ Module Grid.
       ).
 End Grid.
 
-Definition main (argv : list LString.t) : C.t System.effect unit :=
-  let seed :=
-    match argv with
-    | [_; n; m] =>
-      match LString.to_N 10 n, LString.to_N 10 m with
-      | Some n, Some m => (n, m)
-      | _, _ => Random.seed
-      end
-    | _ => Random.seed
-    end in
+Import IO.Notations.
+
+Definition main : IO unit :=
+  let random_max := ExtrOcamlIntConv.int_of_z 32768 in
+  IO_Random.ORandom.self_init tt;;
+  n <- IO_Random.ORandom.int random_max;;
+  m <- IO_Random.ORandom.int random_max;;
+  let seed := (ExtrOcamlIntConv.n_of_int n, ExtrOcamlIntConv.n_of_int m) in
   let grid := M.run Grid.grow seed in
-  System.log (
+  let message :=
     Grid.to_string grid ++
     LString.join (LString.s new_line) Base.art_lines_with_shift ++
-    LString.s Colors.R
-  ).
+    LString.s Colors.R in
+  print_endline (LString.to_string message).
+
+Definition run_main := IO.unsafe_run main.
 
 (** Extract the Bonsai program to `extraction/main.ml`. Run the `Makefile`
     in `extraction/` to compile it. *)
-Definition main_with_effects := Extraction.launch main.
-Extraction "extraction/main" main_with_effects.
+Extraction "extraction/main" run_main.
