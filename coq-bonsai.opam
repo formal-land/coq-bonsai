@@ -4,7 +4,7 @@ homepage: "https://github.com/clarus/coq-bonsai"
 dev-repo: "git+https://github.com/clarus/coq-bonsai.git"
 bug-reports: "https://github.com/clarus/coq-bonsai/issues"
 authors: ["Guillaume Claret"]
-license: "MIT"
+license: "GPL-3.0"
 build: [
   ["./configure.sh"]
   [make "-j%{jobs}%"]
