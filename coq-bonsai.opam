@@ -4,7 +4,7 @@ homepage: "https://github.com/foobar-land/coq-bonsai"
 dev-repo: "git+https://github.com/foobar-land/coq-bonsai.git"
 bug-reports: "https://github.com/foobar-land/coq-bonsai/issues"
 authors: ["Guillaume Claret"]
-license: "GPL-3.0"
+license: "GPL-3.0-only"
 build: [
   ["./configure.sh"]
   [make "-j%{jobs}%"]
